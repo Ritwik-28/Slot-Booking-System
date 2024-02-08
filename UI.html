@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html>
+<head>
+   <link href='https://fonts.googleapis.com/css?family=Rubik' rel='stylesheet'>
+  <title>Slots Booking</title>
+  <style>
+    body, html {
+      height: 100%;
+      margin: 0;
+      font-family: 'Rubik', sans-serif;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background-color: #004642;
+    }
+
+    h1 {
+      margin-bottom: 20px;
+      color: #004642;
+      text-align: center;
+      font-size: 2em;
+    }
+
+    .container {
+      background-color: #fff;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+      max-width: 920px;
+      margin: 10px;
+      width: 600px;
+    }
+
+    label {
+      color: #333;
+      font-weight: bold;
+      display: block;
+      margin: 10px 0 5px;
+    }
+
+    input[type="text"],
+    input[type="email"],
+    input[type="date"],
+    select {
+      width: 100%;
+      padding: 10px;
+      margin-bottom: 10px;
+      border-radius: 20px;
+      border: 1px solid #ccc;
+      box-sizing: border-box;
+    }
+
+    button {
+      width: 100%;
+      padding: 10px;
+      margin-top: 10px;
+      border: none;
+      border-radius: 20px;
+      background-color: #f2796e;
+      color: white;
+      font-size: 1em;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+
+    button:hover {
+      background-color: #bf6959;
+    }
+
+    button:disabled {
+      background-color: #ccc;
+      cursor: not-allowed;
+    }
+
+    #result {
+      text-align: center;
+      color: #4CAF50;
+      margin-top: 15px;
+    }
+
+    @media (max-width: 768px) {
+      .container {
+        margin: 10px;
+        width: auto;
+      }
+    }
+  </style>
+  <script>
+    function loadAvailableSlots() {
+      var date = document.getElementById("date").value;
+      google.script.run.withSuccessHandler(updateSlots).getAvailableSlots(date);
+    }
+
+    function updateSlots(availableSlots) {
+      var slotsContainer = document.getElementById("slots");
+      slotsContainer.innerHTML = "";
+      availableSlots.forEach(function(slot) {
+        var option = document.createElement("option");
+        option.value = [slot.startTime, slot.endTime, slot.panelMemberEmail].join('|');
+        option.innerText = slot.startTime + ' - ' + slot.endTime;
+        slotsContainer.appendChild(option);
+      });
+    }
+
+    function bookSlot() {
+      var name = document.getElementById("name").value;
+      var email = document.getElementById("email").value;
+      var date = document.getElementById("date").value;
+      var slotInfo = document.getElementById("slots").value.split('|');
+      document.getElementById("bookSlotButton").disabled = true;
+      google.script.run.withSuccessHandler(showConfirmation).bookInterview(name, email, date, slotInfo[0], slotInfo[1], slotInfo[2]);
+    }
+
+    function showConfirmation(result) {
+      document.getElementById("result").innerText = result.message;
+      setTimeout(function() {
+        document.getElementById("result").innerText = "Thank You!";
+        document.getElementById("bookSlotButton").disabled = false;
+      }, 10000);
+    }
+  </script>
+</head>
+<body>
+  <div class="container">
+    <h1>Calender Slots Booking</h1>
+    <div>
+      <label for="name">Name:</label>
+      <input type="text" id="name" required>
+    </div>
+    <div>
+      <label for="email">Email:</label>
+      <input type="email" id="email" placeholder="Enter your official mail id" required>
+    </div>
+    <div>
+      <label for="date">Select Date:</label>
+      <input type="date" id="date" onchange="loadAvailableSlots()" required>
+    </div>
+    <div>
+      <label for="slots">Available Slots:</label>
+      <select id="slots" required></select>
+    </div>
+    <button id="bookSlotButton" onclick="bookSlot()">Book Slot</button>
+    <div id="result"></div>
+  </div>
+</body>
+</html>
